@@ -1,0 +1,12 @@
+Package: xfchars
+Version: 1.0
+License: MIT
+Architecture: amd64
+Maintainer: Dmitriy Naumov <naumov1024@gmail.com>
+Depends: python3, wxpython-tools
+Section: default
+Priority: optional
+Installed-Size: 16K
+Description: XFchars by Dmitriy Naumov
+  XFchars is a community-made alternative of gnome-characters for XFCE. 
+  Search unicode characters by name.
