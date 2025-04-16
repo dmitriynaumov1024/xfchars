@@ -8,5 +8,5 @@ Section: default
 Priority: optional
 Installed-Size: 16K
 Description: XFchars by Dmitriy Naumov
-  XFchars is a community-made alternative of gnome-characters for XFCE. 
+  XFchars is an alternative to gnome-characters. 
   Search unicode characters by name.
