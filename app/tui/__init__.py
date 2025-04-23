@@ -27,7 +27,7 @@ class TuiWorker:
         return 0
 
     def command_version (self):
-        print(f"{APP_NAME} {APP_VERSION}")
+        print(f"{APP_NAME} {APP_VERSION}.{APP_REVISION}")
         return 0
 
     def command_find (self, args):
@@ -50,6 +50,7 @@ class TuiWorker:
 
     def command_gui (self, args):
         # to do implement gui worker
+        print("Should start GUI app")
         return 0
 
     def command (self, command, args_list):

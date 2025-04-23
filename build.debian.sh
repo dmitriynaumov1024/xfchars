@@ -24,7 +24,7 @@ function build {
     export APP_VERSION
     export APP_REVISION
 
-    BUILD_DIR="./build/${APP_NAME}-${APP_VERSION}-${APP_REVISION}"
+    BUILD_DIR="./build/${APP_NAME}-${APP_VERSION}.${APP_REVISION}"
     TARGET_FS_PREFIX_LIB="/usr/lib/python3/dist-packages/${APP_NAME}"
     TARGET_FS_PREFIX_BIN="/usr/bin"
     DEBIAN_PREFIX="/DEBIAN"

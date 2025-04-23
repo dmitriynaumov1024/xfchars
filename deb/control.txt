@@ -1,5 +1,5 @@
-Package: $APP_NAME
-Version: $APP_VERSION
+Package: ${APP_NAME}
+Version: ${APP_VERSION}.${APP_REVISION}
 License: MIT
 Architecture: amd64
 Maintainer: Dmitriy Naumov <naumov1024@gmail.com>
