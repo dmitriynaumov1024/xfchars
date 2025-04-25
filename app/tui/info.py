@@ -1,6 +1,6 @@
 APP_NAME = "xfchars"
-APP_VERSION = "1.0"
-APP_REVISION = "3"
+APP_VERSION = "1.1"
+APP_REVISION = "1"
 
 APP_HELP = """
 'xfchars' lets you find unicode characters by name.

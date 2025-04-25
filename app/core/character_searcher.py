@@ -48,6 +48,8 @@ class CharacterSearcher:
             request = request,
             result = []
         )
+        if len(request.query) <= 0:
+            return result
         query = request.query
         char_limit = request.char_limit
         querys = query.split()
