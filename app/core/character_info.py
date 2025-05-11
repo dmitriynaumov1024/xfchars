@@ -29,6 +29,12 @@ class CharacterInfo:
         """
         return f"&#{self.code};"
 
+    def get_htmlcode_esc (self)-> str:
+        """
+        Get escaped html code like '&amp;#12345;'
+        """
+        return f"&amp;#{self.code};"
+
     def set_values (self, *, code: int = None, display: str = None, name: str = None):
         self.code = code
         self.display = display
