@@ -134,6 +134,7 @@ class CharsWxApp(wx.App):
     def BackToResult(self):
         self.status_output.SetLabel(self.status_text)
         self.web_output.SetPage(self.html_doc)
+        self.web_output.Scroll(0, self.web_output.old_scroll)
         return
 
     def ShowDetails(self, item):
@@ -159,6 +160,7 @@ class CharsWxApp(wx.App):
                 ])
             ])
         ])
+        self.web_output.old_scroll = self.web_output.GetScrollPos(wx.VERTICAL)
         self.status_output.SetLabel(f"Found {len(self.result.result)} items. Viewing {item.get_ucode()}.")
         self.web_output.SetPage(details_html_doc)
         return
