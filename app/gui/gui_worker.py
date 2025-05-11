@@ -1,5 +1,24 @@
 from ..core import *
 import wx
+import wx.html
+
+tags_no_content = [
+    "br", "input", "img"
+]
+
+# oh no, i'm writing a hyperscript function again
+def h (tag, children=None):
+    tag = tag.strip()
+    tagname = tag.split()[0]
+    if tagname in tags_no_content:
+        return f"<{tag}/>"
+    if children is None:
+        return f"<{tag}></{tagname}>"
+    elif type(children) is list:
+        return f"<{tag}>{str.join("", children)}</{tagname}>"
+    else:
+        return f"<{tag}>{children}</{tagname}>"
+
 
 class CharsWxApp(wx.App):
     def OnInit(self):
@@ -33,23 +52,16 @@ class CharsWxApp(wx.App):
         button_search.SetCanFocus(False)
         button_search.Bind(wx.EVT_BUTTON, self.OnSearchButtonClick)
         panel.sizer.Add(button_search, wx.GBPosition(0, panel.cols - 2), wx.GBSpan(1, 2), wx.EXPAND)
-
-        list_output = wx.ScrolledWindow(panel, style=wx.VSCROLL)
-        list_output.SetScrollRate(0, 12)
-        self.list_output = list_output
-        list_output.sizer = wx.BoxSizer(wx.VERTICAL)
-        list_output.SetSizer(list_output.sizer)
-        panel.sizer.Add(list_output, wx.GBPosition(2, 0), wx.GBSpan(1, panel.cols), wx.EXPAND)
-
+        
         status_output = wx.StaticText(panel)
         status_output.SetLabel("Try searching something")
         panel.sizer.Add(status_output, wx.GBPosition(1, 0), wx.GBSpan(1, panel.cols), wx.EXPAND)
         self.status_output = status_output
 
-        # text_output = wx.TextCtrl(panel, 1, style=(wx.TE_MULTILINE | wx.TE_READONLY))
-        # text_output.SetFont(wx.Font(12, wx.FONTFAMILY_TELETYPE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
-        # self.text_output = text_output
-        # panel.sizer.Add(text_output, wx.GBPosition(2, 0), wx.GBSpan(1, 3), wx.EXPAND)
+        web_output = wx.html.HtmlWindow(panel)
+        web_output.Bind(wx.html.EVT_HTML_LINK_CLICKED, self.OnWebItemClick)
+        panel.sizer.Add(web_output, wx.GBPosition(2, 0), wx.GBSpan(1, panel.cols), wx.EXPAND)
+        self.web_output = web_output
 
         panel.SetSizer(panel.sizer)
 
@@ -69,25 +81,95 @@ class CharsWxApp(wx.App):
         )
         request = CharacterSearchRequest().set_values(**kwargs)
         result = CharacterSearcher.search(request)
-        self.PrintResult(result)
+        self.SetResult(result)
         return
 
-    def PrintResult(self, result):
-        self.status_output.SetLabel(f"Found {len(result.result)} items")
-        self.list_output.sizer.Clear(True)
-        for item in result.result:
-            item_text = f"{item.display} {item.name}\nunicode: {item.get_ucode()}, html: {item.get_htmlcode()}"
-            item_view = wx.StaticText(self.list_output, 1, label=item_text)
-            self.list_output.sizer.Add(item_view, 0, wx.BOTTOM, 10)
-            item_view.Bind(wx.EVT_LEFT_UP, self.ShowDetails(item))
-        self.list_output.Layout()
-        self.list_output.FitInside()
+    def OnWebItemClick(self, event):
+        href = event.GetLinkInfo().GetHref()
+        if href is None:
+            return
+        elif href == "copy-ucode":
+            self.CopyToClipboard(self.active_item.get_ucode())
+            return
+        elif href == "copy-html":
+            self.CopyToClipboard(self.active_item.get_htmlcode())
+            return
+        elif href == "back-to-result":
+            self.BackToResult()
+            return
+        else:
+            try:
+                index = int(href)
+                self.ShowDetails(self.result.result[index])
+            except BaseException as e:
+                print(e)
+                pass
+        return
+
+    def SetResult(self, result):
+        self.result = result
+        html_ul_items = []
+        for index, item in enumerate(result.result):
+            html_ul_items.append(h("li", [
+                h("p", [
+                    h("font size=+1", [
+                        str(item.display), " ",
+                        h(f"a href={index}", item.name)
+                    ]),
+                    h("br"),
+                    h("span", f"unicode: {item.get_ucode()}, html: {item.get_htmlcode_esc()}"),
+                    h("br")
+                ])
+            ]))
+        self.html_doc = h("html", [
+            h("body", [
+                h("ol", html_ul_items)
+            ])
+        ])
+        self.status_text = f"Found {len(self.result.result)} items. Click on item name to see details."
+        self.status_output.SetLabel(self.status_text)
+        self.web_output.SetPage(self.html_doc)
+        return
+
+    def BackToResult(self):
+        self.status_output.SetLabel(self.status_text)
+        self.web_output.SetPage(self.html_doc)
         return
 
     def ShowDetails(self, item):
-        def DoShowDetails(event):
-            print(item.name) # this is a stub
-        return DoShowDetails
+        self.active_item = item
+        details_html_doc = h("html", [
+            h("body", [
+                h("p", [
+                    h("font size=+4", item.display), " ",
+                    h("font size=+1", item.name),
+                ]),
+                h("p", [
+                    h("span", f"unicode: {item.get_ucode()}"), " ",
+                    h("a href=copy-ucode", "copy")
+                ]),
+                h("p", [
+                    h("span", f"html: {item.get_htmlcode_esc()}"), " ",
+                    h("a href=copy-html", "copy")
+                ]),
+                h("br"),
+                h("br"),
+                h("p", [
+                    h("a href=back-to-result", "Back to search result")
+                ])
+            ])
+        ])
+        self.status_output.SetLabel(f"Found {len(self.result.result)} items. Viewing {item.get_ucode()}.")
+        self.web_output.SetPage(details_html_doc)
+        return
+
+    def CopyToClipboard(self, text):
+        cb = wx.TheClipboard
+        print("Should copy this:", text)
+        if cb.Open():
+            cb.SetData(wx.TextDataObject(text))
+            cb.Close()
+
 
 class GuiWorker:
     def main(self):
